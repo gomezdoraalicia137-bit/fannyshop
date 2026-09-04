@@ -1,0 +1,281 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Check, CreditCard, ShieldCheck, User } from "lucide-react";
+import { Button, LinkButton } from "@/components/ui/button";
+import { Field, Input, Textarea } from "@/components/ui/field";
+import { EmptyState, Skeleton } from "@/components/ui/states";
+import { useCart } from "@/components/shop/cart-provider";
+import { useToast } from "@/components/ui/toast";
+import { formatMoney } from "@/lib/money";
+import { cn } from "@/lib/utils";
+
+type Customer = { fullName: string; email: string; phone: string; notes: string };
+
+const steps = [
+  { id: 1, label: "Información", icon: User },
+  { id: 2, label: "Pago", icon: CreditCard },
+  { id: 3, label: "Confirmación", icon: ShieldCheck },
+];
+
+export function CheckoutFlow({
+  currency,
+  methods,
+  defaults,
+}: {
+  currency: string;
+  methods: { id: string; label: string }[];
+  defaults: { fullName: string; email: string; phone: string };
+}) {
+  const router = useRouter();
+  const toast = useToast();
+  const { summary, lines, loading, couponInput, clear } = useCart();
+
+  const [step, setStep] = useState(1);
+  const [customer, setCustomer] = useState<Customer>({ ...defaults, notes: "" });
+  const [method, setMethod] = useState(methods[0]?.id ?? "");
+  const [errors, setErrors] = useState<Partial<Record<keyof Customer, string>>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!lines.length) {
+    return (
+      <EmptyState
+        title="No hay productos para pagar"
+        description="Agrega productos a tu carrito para iniciar el proceso de compra."
+        action={<LinkButton href="/tarjetas" size="sm">Ir al catálogo</LinkButton>}
+      />
+    );
+  }
+
+  if (!summary) {
+    return (
+      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-72 w-full" />
+      </div>
+    );
+  }
+
+  const validate = () => {
+    const next: Partial<Record<keyof Customer, string>> = {};
+    if (customer.fullName.trim().length < 3) next.fullName = "Ingresa tu nombre completo.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(customer.email.trim())) next.email = "Ingresa un correo válido.";
+    if (customer.phone && customer.phone.replace(/\D/g, "").length < 7) next.phone = "Ingresa un teléfono válido.";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const submit = async () => {
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lines,
+          customer,
+          paymentMethod: method,
+          couponCode: couponInput || null,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        toast.error("Error al procesar la orden.", data.error ?? "Intenta nuevamente.");
+        return;
+      }
+      toast.success("Orden creada correctamente.", `Referencia ${data.reference}`);
+      clear();
+      router.push(`/checkout/gracias/${data.reference}`);
+    } catch {
+      toast.error("Error de conexión.", "No pudimos crear tu orden.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+      <div className="space-y-6">
+        <ol className="glass flex items-center justify-between gap-2 rounded-2xl p-4">
+          {steps.map((item) => (
+            <li key={item.id} className="flex flex-1 items-center gap-2.5">
+              <span
+                className={cn(
+                  "grid size-9 shrink-0 place-items-center rounded-xl border text-xs font-semibold transition-colors",
+                  step >= item.id
+                    ? "border-neon-violet/60 bg-gradient-to-br from-neon-blue/30 to-neon-violet/30 text-white"
+                    : "border-line/70 text-muted",
+                )}
+              >
+                {step > item.id ? <Check className="size-4" /> : <item.icon className="size-4" />}
+              </span>
+              <span className={cn("hidden text-xs font-medium sm:block", step >= item.id ? "text-white" : "text-muted")}>
+                {item.label}
+              </span>
+            </li>
+          ))}
+        </ol>
+
+        {step === 1 ? (
+          <section className="glass space-y-4 rounded-2xl p-5">
+            <h2 className="font-display text-base font-semibold text-white">Información del cliente</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Nombre completo" required error={errors.fullName}>
+                <Input
+                  value={customer.fullName}
+                  onChange={(event) => setCustomer({ ...customer, fullName: event.target.value })}
+                  placeholder="Juan Pérez"
+                  autoComplete="name"
+                />
+              </Field>
+              <Field label="Correo electrónico" required error={errors.email} hint="Ahí enviaremos tus códigos.">
+                <Input
+                  type="email"
+                  value={customer.email}
+                  onChange={(event) => setCustomer({ ...customer, email: event.target.value })}
+                  placeholder="tucorreo@email.com"
+                  autoComplete="email"
+                />
+              </Field>
+              <Field label="Teléfono" error={errors.phone}>
+                <Input
+                  value={customer.phone}
+                  onChange={(event) => setCustomer({ ...customer, phone: event.target.value })}
+                  placeholder="+503 7000 0000"
+                  autoComplete="tel"
+                />
+              </Field>
+              <Field label="Notas para el equipo">
+                <Input
+                  value={customer.notes}
+                  onChange={(event) => setCustomer({ ...customer, notes: event.target.value })}
+                  placeholder="Opcional"
+                />
+              </Field>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={() => {
+                  if (validate()) setStep(2);
+                }}
+              >
+                Continuar al pago
+              </Button>
+            </div>
+          </section>
+        ) : null}
+
+        {step === 2 ? (
+          <section className="glass space-y-4 rounded-2xl p-5">
+            <h2 className="font-display text-base font-semibold text-white">Método de pago</h2>
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {methods.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setMethod(item.id)}
+                  className={cn(
+                    "cursor-pointer rounded-xl border p-4 text-left transition-all",
+                    method === item.id
+                      ? "border-neon-violet/60 bg-gradient-to-br from-neon-blue/15 to-neon-violet/15 text-white"
+                      : "border-line/70 text-muted hover:border-neon-blue/45 hover:text-white",
+                  )}
+                >
+                  <span className="block text-sm font-semibold">{item.label}</span>
+                  <span className="mt-0.5 block text-xs text-muted">Validación manual del equipo</span>
+                </button>
+              ))}
+            </div>
+            <p className="rounded-xl border border-line/70 bg-abyss/60 p-4 text-xs leading-relaxed text-muted">
+              No almacenamos datos de tarjetas. Al confirmar la orden recibirás las instrucciones para completar el pago y
+              tus códigos quedarán reservados.
+            </p>
+            <div className="flex justify-between gap-3">
+              <Button variant="outline" onClick={() => setStep(1)}>
+                Regresar
+              </Button>
+              <Button onClick={() => setStep(3)} disabled={!method}>
+                Revisar orden
+              </Button>
+            </div>
+          </section>
+        ) : null}
+
+        {step === 3 ? (
+          <section className="glass space-y-4 rounded-2xl p-5">
+            <h2 className="font-display text-base font-semibold text-white">Confirma tu orden</h2>
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+              <Detail label="Cliente" value={customer.fullName} />
+              <Detail label="Correo" value={customer.email} />
+              <Detail label="Teléfono" value={customer.phone || "No proporcionado"} />
+              <Detail label="Método de pago" value={methods.find((item) => item.id === method)?.label ?? method} />
+            </dl>
+
+            <div className="space-y-2 rounded-xl border border-line/70 bg-abyss/60 p-4">
+              {summary.lines.map((line) => (
+                <div key={`${line.productId}-${line.denominationId}`} className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted">
+                    {line.productName} {line.denominationLabel} × {line.quantity}
+                  </span>
+                  <span className="font-medium text-white">{formatMoney(line.lineTotal, currency)}</span>
+                </div>
+              ))}
+            </div>
+
+            <Field label="Notas adicionales">
+              <Textarea
+                value={customer.notes}
+                onChange={(event) => setCustomer({ ...customer, notes: event.target.value })}
+                placeholder="Comparte cualquier detalle relevante para tu entrega."
+              />
+            </Field>
+
+            <div className="flex justify-between gap-3">
+              <Button variant="outline" onClick={() => setStep(2)}>
+                Regresar
+              </Button>
+              <Button onClick={submit} loading={submitting} size="lg">
+                Confirmar y crear orden
+              </Button>
+            </div>
+          </section>
+        ) : null}
+      </div>
+
+      <aside className="glass-strong h-fit space-y-4 rounded-2xl p-5 lg:sticky lg:top-24">
+        <h2 className="font-display text-base font-semibold text-white">Resumen</h2>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted">Subtotal</span>
+            <span className="text-white">{formatMoney(summary.subtotal, currency)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted">IVA incluido</span>
+            <span className="text-white">{formatMoney(summary.taxTotal, currency)}</span>
+          </div>
+          {summary.discount > 0 ? (
+            <div className="flex justify-between">
+              <span className="text-muted">Descuento</span>
+              <span className="text-neon-emerald">- {formatMoney(summary.discount, currency)}</span>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between border-t border-line/60 pt-3">
+            <span className="text-muted">Total</span>
+            <span className="font-display text-2xl font-semibold text-white">{formatMoney(summary.total, currency)}</span>
+          </div>
+        </div>
+        {loading ? <p className="text-xs text-muted">Actualizando precios...</p> : null}
+      </aside>
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-line/70 bg-abyss/60 p-3">
+      <dt className="text-[10px] uppercase tracking-[0.16em] text-muted">{label}</dt>
+      <dd className="mt-0.5 truncate text-sm text-white">{value}</dd>
+    </div>
+  );
+}

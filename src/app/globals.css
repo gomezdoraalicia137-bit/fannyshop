@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #05060d;
+  --color-abyss: #080a16;
+  --color-surface: #0d1022;
+  --color-surface-2: #131734;
+  --color-line: #1e2450;
+  --color-neon-blue: #2b6bff;
+  --color-neon-violet: #8b3dff;
+  --color-neon-cyan: #22e3ff;
+  --color-neon-magenta: #ff3ea5;
+  --color-neon-emerald: #16f2a5;
+  --color-muted: #9aa3c7;
+
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-display: var(--font-orbitron), var(--font-space-grotesk), sans-serif;
+
+  --animate-float: float 9s ease-in-out infinite;
+  --animate-drift: drift 22s ease-in-out infinite;
+  --animate-pulse-glow: pulseGlow 4.5s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-spin-slow: spin 18s linear infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -18px, 0) rotate(2deg); }
+}
+
+@keyframes drift {
+  0% { transform: translate3d(-4%, 0, 0) scale(1); }
+  50% { transform: translate3d(4%, -3%, 0) scale(1.08); }
+  100% { transform: translate3d(-4%, 0, 0) scale(1); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: var(--color-void);
+  color: #f2f5ff;
+}
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  background-image:
+    radial-gradient(900px 480px at 12% -8%, color-mix(in oklab, var(--color-neon-violet) 26%, transparent), transparent 70%),
+    radial-gradient(760px 420px at 88% 0%, color-mix(in oklab, var(--color-neon-blue) 24%, transparent), transparent 72%),
+    radial-gradient(1000px 640px at 50% 108%, color-mix(in oklab, var(--color-neon-cyan) 12%, transparent), transparent 70%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-neon-violet) 55%, transparent);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-abyss);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--color-neon-blue), var(--color-neon-violet));
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--color-surface) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid color-mix(in oklab, #7f8bff 18%, transparent);
+}
+
+@utility glass-strong {
+  background: color-mix(in oklab, var(--color-surface-2) 86%, transparent);
+  backdrop-filter: blur(22px) saturate(150%);
+  border: 1px solid color-mix(in oklab, #7f8bff 24%, transparent);
+}
+
+@utility neon-text {
+  background: linear-gradient(100deg, var(--color-neon-cyan), var(--color-neon-blue) 42%, var(--color-neon-violet) 78%, var(--color-neon-magenta));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility glow-blue {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-neon-blue) 40%, transparent),
+    0 18px 60px -22px color-mix(in oklab, var(--color-neon-blue) 90%, transparent);
+}
+
+@utility glow-violet {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-neon-violet) 40%, transparent),
+    0 18px 60px -22px color-mix(in oklab, var(--color-neon-violet) 90%, transparent);
+}
+
+@utility grid-lines {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, #6f7dff 8%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, #6f7dff 8%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+@utility skeleton {
+  background: linear-gradient(90deg, #131734 25%, #1c2350 37%, #131734 63%);
+  background-size: 800px 100%;
+  animation: var(--animate-shimmer);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-neon-cyan) 80%, transparent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

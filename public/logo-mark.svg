@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="FannyShop">
+  <defs>
+    <linearGradient id="fsStroke" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22e3ff" />
+      <stop offset="0.45" stop-color="#2b6bff" />
+      <stop offset="0.78" stop-color="#8b3dff" />
+      <stop offset="1" stop-color="#ff3ea5" />
+    </linearGradient>
+    <linearGradient id="fsFill" x1="10" y1="8" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#131734" />
+      <stop offset="1" stop-color="#080a16" />
+    </linearGradient>
+    <linearGradient id="fsLetter" x1="22" y1="16" x2="46" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#eaf3ff" />
+      <stop offset="1" stop-color="#a9c6ff" />
+    </linearGradient>
+    <filter id="fsGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <path d="M32 3.6 55.4 17v30L32 60.4 8.6 47V17z" fill="url(#fsFill)" />
+  <path d="M32 3.6 55.4 17v30L32 60.4 8.6 47V17z" fill="none" stroke="url(#fsStroke)" stroke-width="2.6" stroke-linejoin="round" filter="url(#fsGlow)" />
+  <path d="M32 9.6 50.2 20v24L32 54.4 13.8 44V20z" fill="none" stroke="#7f8bff" stroke-opacity="0.22" stroke-width="1" stroke-linejoin="round" />
+
+  <path d="M24.5 45V19h17v5.6H30.6v5.2h9.1v5.5h-9.1V45z" fill="url(#fsLetter)" />
+  <path d="M43.4 33.6h5.4l-2.2 4.6 2.2 1.1-6.7 5.1 2-4.8-2.3-1z" fill="#22e3ff" />
+</svg>

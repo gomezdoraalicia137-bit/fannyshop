@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" width="300" height="72" role="img" aria-label="FannyShop">
+  <defs>
+    <linearGradient id="lkStroke" x1="10" y1="6" x2="62" y2="66" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22e3ff" />
+      <stop offset="0.45" stop-color="#2b6bff" />
+      <stop offset="0.78" stop-color="#8b3dff" />
+      <stop offset="1" stop-color="#ff3ea5" />
+    </linearGradient>
+    <linearGradient id="lkFill" x1="12" y1="10" x2="60" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#131734" />
+      <stop offset="1" stop-color="#080a16" />
+    </linearGradient>
+    <linearGradient id="lkWord" x1="86" y1="20" x2="290" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22e3ff" />
+      <stop offset="0.5" stop-color="#8b3dff" />
+      <stop offset="1" stop-color="#ff3ea5" />
+    </linearGradient>
+    <filter id="lkGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.2" result="b" />
+      <feMerge>
+        <feMergeNode in="b" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g transform="translate(4 4)">
+    <path d="M32 3.6 55.4 17v30L32 60.4 8.6 47V17z" fill="url(#lkFill)" />
+    <path d="M32 3.6 55.4 17v30L32 60.4 8.6 47V17z" fill="none" stroke="url(#lkStroke)" stroke-width="2.6" stroke-linejoin="round" filter="url(#lkGlow)" />
+    <path d="M24.5 45V19h17v5.6H30.6v5.2h9.1v5.5h-9.1V45z" fill="#eaf3ff" />
+    <path d="M43.4 33.6h5.4l-2.2 4.6 2.2 1.1-6.7 5.1 2-4.8-2.3-1z" fill="#22e3ff" />
+  </g>
+
+  <text x="80" y="46" font-family="Orbitron, 'Space Grotesk', system-ui, sans-serif" font-size="27" font-weight="700" letter-spacing="1.2" fill="#f2f5ff">FANNY</text>
+  <text x="184" y="46" font-family="Orbitron, 'Space Grotesk', system-ui, sans-serif" font-size="27" font-weight="700" letter-spacing="1.2" fill="url(#lkWord)">SHOP</text>
+  <text x="82" y="60" font-family="'Space Grotesk', system-ui, sans-serif" font-size="9" letter-spacing="4.4" fill="#9aa3c7">TARJETAS DIGITALES</text>
+</svg>
