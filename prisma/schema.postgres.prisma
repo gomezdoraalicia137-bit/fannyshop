@@ -1,7 +1,6 @@
 // Generado por scripts/build-postgres-schema.mjs — no editar a mano.
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
