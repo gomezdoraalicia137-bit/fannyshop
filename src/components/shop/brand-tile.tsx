@@ -22,9 +22,9 @@ export function BrandTile({
   size?: "sm" | "md" | "lg";
 }) {
   const styles = accentClasses(accent);
-  const heights = { sm: "h-20", md: "h-32", lg: "h-52" };
+  const heights = { sm: "h-24", md: "h-36", lg: "h-56" };
   const iconSize = { sm: "size-6", md: "size-9", lg: "size-14" };
-  const logoSize = { sm: "max-h-10", md: "max-h-16", lg: "max-h-28" };
+  const padding = { sm: "p-2.5", md: "p-4", lg: "p-6" };
   const src = toImageSrc(logo);
 
   return (
@@ -44,7 +44,7 @@ export function BrandTile({
           alt={name}
           loading="lazy"
           decoding="async"
-          className={cn("relative w-auto max-w-[78%] object-contain drop-shadow-lg", logoSize[size])}
+          className={cn("relative size-full object-contain drop-shadow-lg", padding[size])}
         />
       ) : (
         <div className="relative flex flex-col items-center gap-2 px-3 text-center">
@@ -81,7 +81,7 @@ export function BrandThumb({
       )}
     >
       {src ? (
-        <img src={src} alt={name} loading="lazy" decoding="async" className="size-full object-contain p-1.5" />
+        <img src={src} alt={name} loading="lazy" decoding="async" className="size-full object-contain p-1" />
       ) : (
         <span className="font-display text-sm font-bold text-white">{fallback}</span>
       )}
