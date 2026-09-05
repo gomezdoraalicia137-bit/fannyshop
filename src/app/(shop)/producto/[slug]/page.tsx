@@ -74,7 +74,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_1.05fr]">
         <div className="space-y-6">
-          <BrandTile name={product.name} accent={product.accent} icon={product.category.icon} size="lg" />
+          <BrandTile
+            name={product.name}
+            accent={product.accent}
+            icon={product.category.icon}
+            logo={product.image || product.logo}
+            size="lg"
+          />
 
           <div className="grid gap-3 sm:grid-cols-3">
             <InfoTile icon={<PackageCheck className="size-4" />} label="Entrega" value="Inmediata" />

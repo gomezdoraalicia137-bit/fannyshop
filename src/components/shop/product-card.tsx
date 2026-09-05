@@ -41,7 +41,7 @@ export function ProductCard({ product, currency = "USD" }: { product: ProductVie
       </div>
 
       <Link href={`/producto/${product.slug}`} className="block p-5 pb-0" aria-label={`Ver ${product.name}`}>
-        <BrandTile name={product.name} accent={product.accent} icon={product.category.icon} />
+        <BrandTile name={product.name} accent={product.accent} icon={product.category.icon} logo={product.logo} />
       </Link>
 
       <div className="flex flex-1 flex-col gap-4 p-5">

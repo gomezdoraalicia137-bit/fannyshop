@@ -60,6 +60,8 @@ export const productSchema = z.object({
   region: z.string().trim().max(60).default("Global"),
   accent: z.string().trim().max(20).default("blue"),
   tag: z.string().trim().max(20).optional().nullable(),
+  logo: z.string().trim().max(80000).optional().nullable(),
+  image: z.string().trim().max(80000).optional().nullable(),
   deliveryInfo: z.string().trim().max(400).default(""),
   active: z.boolean().default(true),
   featured: z.boolean().default(false),

@@ -26,6 +26,8 @@ export default async function AdminProductsPage() {
     active: product.active,
     featured: product.featured,
     tag: product.tag,
+    logo: product.logo,
+    accent: product.accent,
     sales: product.salesCount,
   }));
 

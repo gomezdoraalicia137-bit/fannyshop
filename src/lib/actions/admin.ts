@@ -8,6 +8,7 @@ import { saveSettings } from "@/lib/services/settings";
 import { addCodes } from "@/lib/services/inventory";
 import { assignCodeToItem, deliverOrder, markOrderPaid, updateOrderStatus } from "@/lib/services/orders";
 import { isRoundingRule } from "@/lib/pricing";
+import { isValidImageValue } from "@/lib/media";
 import { CATALOG_TAG, SETTINGS_TAG } from "@/lib/cache";
 import { slugify } from "@/lib/utils";
 import { categorySchema, couponSchema, denominationSchema, firstError, productSchema } from "@/lib/validators";
@@ -63,6 +64,8 @@ export async function saveProductAction(_prev: ActionState, formData: FormData):
     region: String(formData.get("region") ?? "Global"),
     accent: String(formData.get("accent") ?? "blue"),
     tag: optionalString(formData.get("tag")),
+    logo: optionalString(formData.get("logo")),
+    image: optionalString(formData.get("image")),
     deliveryInfo: String(formData.get("deliveryInfo") ?? ""),
     active: formData.get("active") === "on",
     featured: formData.get("featured") === "on",
@@ -75,6 +78,13 @@ export async function saveProductAction(_prev: ActionState, formData: FormData):
   });
 
   if (!parsed.success) return { ok: false, message: firstError(parsed.error) };
+
+  if (!isValidImageValue(parsed.data.logo) || !isValidImageValue(parsed.data.image)) {
+    return {
+      ok: false,
+      message: "La imagen debe ser una URL https, un SVG pegado o una imagen en base64.",
+    };
+  }
 
   const data = {
     ...parsed.data,

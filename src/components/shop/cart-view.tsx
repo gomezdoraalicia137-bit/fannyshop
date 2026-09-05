@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Minus, Plus, ShoppingBag, Ticket, Trash2 } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { EmptyState, Skeleton } from "@/components/ui/states";
+import { BrandThumb } from "@/components/shop/brand-tile";
 import { useCart } from "@/components/shop/cart-provider";
 import { useToast } from "@/components/ui/toast";
 import { formatMoney } from "@/lib/money";
@@ -48,9 +49,12 @@ export function CartView({ currency }: { currency: string }) {
             key={`${line.productId}-${line.denominationId}`}
             className="glass flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center"
           >
-            <div className="grid size-14 shrink-0 place-items-center rounded-xl border border-line/70 bg-gradient-to-br from-neon-violet/25 to-neon-blue/10 font-display text-sm font-bold text-white">
-              {line.denominationLabel.replace(/[^0-9A-Za-z]/g, "").slice(0, 4)}
-            </div>
+            <BrandThumb
+              name={line.productName}
+              accent={line.accent}
+              logo={line.logo}
+              fallback={line.denominationLabel.replace(/[^0-9A-Za-z]/g, "").slice(0, 4)}
+            />
 
             <div className="min-w-0 flex-1">
               <Link href={`/producto/${line.productSlug}`} className="font-display text-sm font-semibold text-white hover:text-neon-cyan">

@@ -16,6 +16,8 @@ import {
   type ActionState,
 } from "@/lib/actions/admin";
 import { resolvePricingRules, type PricingRules } from "@/lib/pricing";
+import { toImageSrc } from "@/lib/media";
+import { cn } from "@/lib/utils";
 import { ACCENTS, PRODUCT_TAGS, PRODUCT_TAG_LABELS, ROUNDING_RULES, ROUNDING_RULE_LABELS } from "@/lib/constants";
 import { formatMoney } from "@/lib/money";
 
@@ -30,6 +32,8 @@ export type ProductFormValues = {
   region: string;
   accent: string;
   tag: string;
+  logo: string;
+  image: string;
   deliveryInfo: string;
   active: boolean;
   featured: boolean;
@@ -169,6 +173,40 @@ export function ProductForm({
         </Card>
 
         <Card>
+          <CardHeader
+            title="Imágenes del producto"
+            description="Pega el código SVG del logo, una URL https o una imagen en base64."
+          />
+          <CardBody className="grid gap-4">
+            <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
+              <Field label="Logo" hint="Se muestra en las tarjetas del catálogo y en el carrito.">
+                <Textarea
+                  name="logo"
+                  value={values.logo}
+                  onChange={(event) => setValues({ ...values, logo: event.target.value })}
+                  placeholder={'<svg ...></svg>   ó   https://ejemplo.com/logo.svg'}
+                  className="min-h-24 font-mono text-xs"
+                />
+              </Field>
+              <LogoPreview value={values.logo} label="Logo" />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
+              <Field label="Imagen de portada" hint="Opcional. Se usa en la página del producto.">
+                <Textarea
+                  name="image"
+                  value={values.image}
+                  onChange={(event) => setValues({ ...values, image: event.target.value })}
+                  placeholder="https://ejemplo.com/portada.png"
+                  className="min-h-24 font-mono text-xs"
+                />
+              </Field>
+              <LogoPreview value={values.image} label="Portada" />
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
           <CardHeader title="Precios del producto" description="Deja vacío para heredar la configuración global." />
           <CardBody className="grid gap-4 sm:grid-cols-2">
             <Field label="IVA (%)">
@@ -265,6 +303,31 @@ export function ProductForm({
           <Card>
             <CardHeader title="Denominaciones" description="Guarda el producto para agregar denominaciones." />
           </Card>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LogoPreview({ value, label }: { value: string; label: string }) {
+  const src = toImageSrc(value);
+  const invalid = value.trim().length > 0 && !src;
+
+  return (
+    <div className="space-y-1.5">
+      <span className="block text-xs font-medium uppercase tracking-[0.14em] text-muted">Vista previa</span>
+      <div
+        className={cn(
+          "grid size-28 place-items-center overflow-hidden rounded-xl border bg-abyss/60 p-2",
+          invalid ? "border-rose-500/50" : "border-line/70",
+        )}
+      >
+        {src ? (
+          <img src={src} alt={label} className="size-full object-contain" />
+        ) : (
+          <span className={cn("px-2 text-center text-[10px]", invalid ? "text-rose-300" : "text-muted")}>
+            {invalid ? "Formato no válido" : "Sin imagen"}
+          </span>
         )}
       </div>
     </div>

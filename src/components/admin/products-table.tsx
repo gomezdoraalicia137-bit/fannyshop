@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Pencil, Plus, Power, Search, Trash2 } from "lucide-react";
 import { DataTable, Td } from "@/components/admin/primitives";
 import { Badge, ProductTagBadge } from "@/components/ui/badge";
+import { BrandThumb } from "@/components/shop/brand-tile";
 import { Button, LinkButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/states";
 import { Select } from "@/components/ui/field";
@@ -24,6 +25,8 @@ export type AdminProductRow = {
   active: boolean;
   featured: boolean;
   tag: string | null;
+  logo: string | null;
+  accent: string;
   sales: number;
 };
 
@@ -101,13 +104,24 @@ export function ProductsTable({
               {filtered.map((product) => (
                 <tr key={product.id} className="transition-colors hover:bg-white/[0.03]">
                   <Td>
-                    <div className="flex items-center gap-2">
-                      <Link href={`/admin/productos/${product.id}`} className="text-sm font-medium text-white hover:text-neon-cyan">
-                        {product.name}
-                      </Link>
-                      {product.tag ? <ProductTagBadge tag={product.tag} /> : null}
+                    <div className="flex items-center gap-3">
+                      <BrandThumb
+                        name={product.name}
+                        accent={product.accent}
+                        logo={product.logo}
+                        fallback={product.name.slice(0, 2).toUpperCase()}
+                        className="size-10"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Link href={`/admin/productos/${product.id}`} className="text-sm font-medium text-white hover:text-neon-cyan">
+                            {product.name}
+                          </Link>
+                          {product.tag ? <ProductTagBadge tag={product.tag} /> : null}
+                        </div>
+                        <p className="text-xs text-muted">/{product.slug}</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted">/{product.slug}</p>
                   </Td>
                   <Td className="text-sm">{product.category}</Td>
                   <Td>{product.denominations}</Td>
@@ -157,11 +171,20 @@ export function ProductsTable({
             {filtered.map((product) => (
               <div key={product.id} className="glass space-y-3 rounded-2xl p-4">
                 <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <Link href={`/admin/productos/${product.id}`} className="text-sm font-semibold text-white">
-                      {product.name}
-                    </Link>
-                    <p className="text-xs text-muted">{product.category}</p>
+                  <div className="flex items-center gap-3">
+                    <BrandThumb
+                      name={product.name}
+                      accent={product.accent}
+                      logo={product.logo}
+                      fallback={product.name.slice(0, 2).toUpperCase()}
+                      className="size-10"
+                    />
+                    <div>
+                      <Link href={`/admin/productos/${product.id}`} className="text-sm font-semibold text-white">
+                        {product.name}
+                      </Link>
+                      <p className="text-xs text-muted">{product.category}</p>
+                    </div>
                   </div>
                   <Badge tone={product.active ? "emerald" : "slate"}>{product.active ? "Activo" : "Inactivo"}</Badge>
                 </div>
