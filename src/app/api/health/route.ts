@@ -7,25 +7,34 @@ function sanitize(message: string): string {
   return message.replace(/postgres(ql)?:\/\/[^\s"']+/gi, "postgresql://[oculto]");
 }
 
+async function readCloudflareEnv(): Promise<Record<string, unknown> | null> {
+  try {
+    const mod = await import("@opennextjs/cloudflare");
+    const context = mod.getCloudflareContext();
+    return (context?.env ?? null) as Record<string, unknown> | null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET() {
-  const url = process.env.DATABASE_URL;
+  const cfEnv = await readCloudflareEnv();
 
   const report: Record<string, unknown> = {
-    hasDatabaseUrl: Boolean(url),
-    hasAuthSecret: Boolean(process.env.AUTH_SECRET),
-    siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? null,
-    runtime: typeof WebSocket === "undefined" ? "sin WebSocket" : "con WebSocket",
+    processEnv: {
+      databaseUrl: Boolean(process.env.DATABASE_URL),
+      authSecret: Boolean(process.env.AUTH_SECRET),
+      siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? null,
+    },
+    cloudflareEnv: cfEnv
+      ? {
+          disponible: true,
+          databaseUrl: Boolean(cfEnv.DATABASE_URL),
+          authSecret: Boolean(cfEnv.AUTH_SECRET),
+          claves: Object.keys(cfEnv).sort(),
+        }
+      : { disponible: false },
   };
-
-  if (url) {
-    try {
-      const parsed = new URL(url);
-      report.dbHost = parsed.hostname;
-      report.usesPooler = parsed.hostname.includes("-pooler");
-    } catch {
-      report.dbHost = "cadena inválida";
-    }
-  }
 
   try {
     report.products = await prisma.product.count();
@@ -33,8 +42,8 @@ export async function GET() {
   } catch (error) {
     report.dbConnection = "fallo";
     report.dbError = sanitize(error instanceof Error ? error.message : String(error));
-    report.dbErrorName = error instanceof Error ? error.name : "desconocido";
   }
 
   return NextResponse.json(report, { status: 200 });
 }
+

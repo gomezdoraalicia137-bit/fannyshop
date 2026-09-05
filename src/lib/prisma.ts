@@ -1,14 +1,12 @@
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
+import { requireEnv } from "@/lib/env";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) throw new Error("DATABASE_URL no está configurado.");
-
   return new PrismaClient({
-    adapter: new PrismaNeon({ connectionString }),
+    adapter: new PrismaNeon({ connectionString: requireEnv("DATABASE_URL") }),
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 }

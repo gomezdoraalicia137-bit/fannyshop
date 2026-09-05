@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
+import { getEnv } from "@/lib/env";
 import { hashPasswordValue, verifyPasswordValue } from "@/lib/password";
 import type { Role } from "@/lib/constants";
 
@@ -16,7 +17,7 @@ export type SessionUser = {
 };
 
 function secretKey(): Uint8Array {
-  const secret = process.env.AUTH_SECRET;
+  const secret = getEnv("AUTH_SECRET");
   if (!secret || secret.length < 16) {
     throw new Error("AUTH_SECRET no está configurado correctamente.");
   }
