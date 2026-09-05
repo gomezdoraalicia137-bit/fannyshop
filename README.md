@@ -166,7 +166,21 @@ En Windows puedes habilitar el **Modo de desarrollador** (Configuración → Sis
 ## Notas técnicas
 
 - Las contraseñas usan **PBKDF2 con WebCrypto** (no bcrypt) porque el plan gratuito de Workers limita la CPU a 10 ms por petición y bcrypt consume 50-150 ms. Los hashes antiguos de bcrypt se siguen validando y se migran automáticamente en el primer inicio de sesión.
-- El cliente Prisma se conecta mediante el **driver serverless de Neon**, que soporta transacciones interactivas (necesarias para reservar códigos sin duplicados). En Node usa `ws`; en Workers utiliza el WebSocket nativo.
-- El cliente se crea de forma perezosa por petición para evitar el error `Cannot perform I/O on behalf of a different request` de Workers.
+- Las consultas viajan por **HTTP** (`poolQueryViaFetch`), lo que evita el error `Cannot perform I/O on behalf of a different request` de Workers al reutilizar sockets entre peticiones.
+- Las **transacciones interactivas** (reserva de códigos) necesitan WebSocket, así que `withTransaction` abre una conexión dedicada y la cierra al terminar.
+- Todas las lecturas de catálogo, sesión y configuración degradan a valores por defecto si la base no responde, de modo que la tienda nunca devuelve error 500 por un fallo de base de datos.
+- Las variables se leen de `process.env` y, como respaldo, del contexto de Cloudflare.
 - `compatibility_flags` incluye `nodejs_compat`, requerido por Prisma.
 - `public/_headers` fija el cacheo inmutable de los assets estáticos.
+
+## Variables en Cloudflare
+
+Cloudflare distingue dos lugares con nombres casi idénticos:
+
+| Variable | Dónde va |
+| --- | --- |
+| `DATABASE_URL` | **Settings → Runtime variables and secrets** (tipo Secret) |
+| `AUTH_SECRET` | **Settings → Runtime variables and secrets** (tipo Secret) |
+| `NEXT_PUBLIC_SITE_URL` | **Settings → Builds → Variables and secrets** (se incrusta al compilar) |
+
+Colocar las dos primeras en la sección de *Builds* no funciona: solo existen durante la compilación y el sitio arranca sin base de datos.
