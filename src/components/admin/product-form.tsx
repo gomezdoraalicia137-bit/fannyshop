@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Save, Trash2 } from "lucide-react";
+import { Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/field";
@@ -333,7 +333,7 @@ function DenominationsManager({
                   {formatMoney(denomination.price, currency)}
                 </span>
                 <Button size="icon" variant="secondary" aria-label="Editar denominación" onClick={() => openModal(denomination)}>
-                  <Plus className="size-4 rotate-45" />
+                  <Pencil className="size-4" />
                 </Button>
                 <Button
                   size="icon"
