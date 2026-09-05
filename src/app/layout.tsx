@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Orbitron, Space_Grotesk } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
 import { CartProvider } from "@/components/shop/cart-provider";
@@ -18,8 +19,12 @@ const orbitron = Orbitron({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSettings();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const [settings, headerList] = await Promise.all([getSettings(), headers()]);
+
+  const host = headerList.get("host");
+  const protocol = headerList.get("x-forwarded-proto") ?? (host?.includes("localhost") ? "http" : "https");
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : "http://localhost:3000");
 
   return {
     metadataBase: new URL(siteUrl),

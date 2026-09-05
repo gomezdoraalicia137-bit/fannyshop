@@ -1,10 +1,20 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 import { getCategories, getProductSlugs } from "@/lib/services/catalog";
 
 export const dynamic = "force-dynamic";
 
+async function resolveBaseUrl(): Promise<string> {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  const headerList = await headers();
+  const host = headerList.get("host");
+  if (!host) return "http://localhost:3000";
+  const protocol = headerList.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  return `${protocol}://${host}`;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const base = await resolveBaseUrl();
 
   const staticRoutes = ["", "/tarjetas", "/categorias", "/ofertas", "/faq", "/contacto", "/legal/terminos", "/legal/privacidad", "/legal/reembolsos"];
 
