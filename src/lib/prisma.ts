@@ -23,7 +23,21 @@ export function getPrisma(): PrismaClient {
     if (!globalForPrisma.prisma) globalForPrisma.prisma = createClient();
     return globalForPrisma.prisma;
   }
-  return getRequestClient();
+  if (!globalForPrisma.prisma) globalForPrisma.prisma = getRequestClient();
+  return globalForPrisma.prisma;
+}
+
+export async function withTransaction<T>(
+  run: (tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0]) => Promise<T>,
+): Promise<T> {
+  if (isDevelopment) return getPrisma().$transaction(run);
+
+  const client = createClient();
+  try {
+    return await client.$transaction(run);
+  } finally {
+    await client.$disconnect().catch(() => undefined);
+  }
 }
 
 export const prisma = new Proxy({} as PrismaClient, {

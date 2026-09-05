@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto";
-import { prisma } from "@/lib/prisma";
+import { prisma, withTransaction } from "@/lib/prisma";
 import { round2 } from "@/lib/money";
 import { priceDenomination } from "@/lib/pricing";
 import { getGlobalPricingRules, getSettings } from "@/lib/services/settings";
@@ -119,7 +119,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const profitTotal = round2(total - taxTotal - costTotal);
   const reference = generateReference();
 
-  const order = await prisma.$transaction(async (tx) => {
+  const order = await withTransaction(async (tx) => {
     const created = await tx.order.create({
       data: {
         reference,
@@ -219,7 +219,7 @@ export async function deliverOrder(orderId: string, actor: { id: string; email: 
   const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
   if (!order) return null;
 
-  await prisma.$transaction(async (tx) => {
+  await withTransaction(async (tx) => {
     for (const item of order.items) {
       const assigned = await tx.digitalCode.count({ where: { orderItemId: item.id } });
       if (assigned < item.quantity) {
