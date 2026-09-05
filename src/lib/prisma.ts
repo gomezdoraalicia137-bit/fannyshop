@@ -1,20 +1,11 @@
-import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-function configureDriver(): void {
-  if (typeof WebSocket === "undefined" && !neonConfig.webSocketConstructor) {
-    neonConfig.webSocketConstructor = require("ws");
-  }
-}
-
 function createClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL no está configurado.");
-
-  configureDriver();
 
   return new PrismaClient({
     adapter: new PrismaNeon({ connectionString }),
