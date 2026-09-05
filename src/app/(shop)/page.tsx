@@ -11,12 +11,20 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+async function countCodes(): Promise<number> {
+  try {
+    return await prisma.digitalCode.count();
+  } catch {
+    return 0;
+  }
+}
+
 export default async function HomePage() {
   const [products, categories, settings, deliveredCodes] = await Promise.all([
     getProducts(),
     getCategories(),
     getSettings(),
-    prisma.digitalCode.count().catch(() => 0),
+    countCodes(),
   ]);
 
   const featured = products.filter((product) => product.featured).slice(0, 4);
