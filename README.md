@@ -15,20 +15,21 @@ Puedes reemplazar el logo sin tocar código desde **Configuración → URL del l
 
 - Next.js 16 (App Router, Server Components, Server Actions)
 - TypeScript · Tailwind CSS v4
-- Prisma 6 · SQLite (cambiable a PostgreSQL/MySQL desde `prisma/schema.prisma`)
-- Sesiones JWT httpOnly con `jose` · contraseñas con `bcryptjs`
+- Prisma 6 · PostgreSQL mediante el driver serverless de Neon
+- Sesiones JWT httpOnly con `jose` · contraseñas con PBKDF2 (WebCrypto)
 - Recharts para gráficos · Zod para validación
 
 ## Puesta en marcha
 
 ```bash
 npm install
+cp .env.example .env      # coloca tu DATABASE_URL de Neon y un AUTH_SECRET propio
 npm run db:push
 npm run db:seed
 npm run dev
 ```
 
-Variables de entorno en `.env` (ver `.env.example`). Genera un `AUTH_SECRET` propio antes de producción.
+La aplicación usa **la misma base PostgreSQL en desarrollo y en producción**, así que lo que pruebas en local se comporta igual una vez desplegado.
 
 ## Cuentas de demostración
 
@@ -104,15 +105,14 @@ SQLite no funciona en Cloudflare porque no hay disco persistente. **No uses D1**
 Usa Postgres (Neon tiene plan gratuito):
 
 1. Crea un proyecto en [neon.com](https://neon.com) y copia la cadena de conexión (`postgresql://...`).
-2. Genera el esquema Postgres y aplícalo:
+2. Colócala en `.env` como `DATABASE_URL` y crea el esquema:
 
 ```bash
-$env:DATABASE_URL="postgresql://usuario:clave@host/db?sslmode=require"
-npm run db:push:pg
-npm run db:seed:pg
+npm run db:push
+npm run db:seed
 ```
 
-El esquema Postgres se genera automáticamente desde `prisma/schema.prisma`, así que nunca se desincroniza. El cliente Prisma detecta el tipo de base por la URL: SQLite en local, Neon en producción.
+Usa la cadena **pooled** (la que incluye `-pooler` en el host) tanto en local como en Cloudflare.
 
 ## Paso 2 — Subir el código a GitHub
 
@@ -166,6 +166,7 @@ En Windows puedes habilitar el **Modo de desarrollador** (Configuración → Sis
 ## Notas técnicas
 
 - Las contraseñas usan **PBKDF2 con WebCrypto** (no bcrypt) porque el plan gratuito de Workers limita la CPU a 10 ms por petición y bcrypt consume 50-150 ms. Los hashes antiguos de bcrypt se siguen validando y se migran automáticamente en el primer inicio de sesión.
+- El cliente Prisma se conecta mediante el **driver serverless de Neon**, que soporta transacciones interactivas (necesarias para reservar códigos sin duplicados). En Node usa `ws`; en Workers utiliza el WebSocket nativo.
+- El cliente se crea de forma perezosa por petición para evitar el error `Cannot perform I/O on behalf of a different request` de Workers.
 - `compatibility_flags` incluye `nodejs_compat`, requerido por Prisma.
-- Si en producción aparece `Cannot perform I/O on behalf of a different request`, conecta la base mediante **Hyperdrive** y usa su cadena de conexión en `DATABASE_URL`.
 - `public/_headers` fija el cacheo inmutable de los assets estáticos.

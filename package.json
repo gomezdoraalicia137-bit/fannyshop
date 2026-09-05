@@ -10,9 +10,6 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "db:schema:pg": "node scripts/build-postgres-schema.mjs",
-    "db:push:pg": "npm run db:schema:pg && prisma db push --schema prisma/schema.postgres.prisma && prisma generate",
-    "db:seed:pg": "npm run db:schema:pg && prisma generate --schema prisma/schema.postgres.prisma && tsx prisma/seed.ts && prisma generate",
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
@@ -33,6 +30,7 @@
     "recharts": "^3.10.1",
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.6.0",
+    "ws": "^8.21.3",
     "zod": "^4.5.4"
   },
   "devDependencies": {
@@ -42,6 +40,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "prisma": "6.19.3",

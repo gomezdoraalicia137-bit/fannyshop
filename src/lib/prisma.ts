@@ -1,21 +1,25 @@
+import { neonConfig } from "@neondatabase/serverless";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-function isPostgres(url: string | undefined): boolean {
-  return Boolean(url && /^postgres(ql)?:\/\//.test(url));
+function configureDriver(): void {
+  if (typeof WebSocket === "undefined" && !neonConfig.webSocketConstructor) {
+    neonConfig.webSocketConstructor = require("ws");
+  }
 }
 
 function createClient(): PrismaClient {
-  const url = process.env.DATABASE_URL;
-  const log: ("error" | "warn")[] = process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"];
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) throw new Error("DATABASE_URL no está configurado.");
 
-  if (isPostgres(url)) {
-    const { PrismaNeon } = require("@prisma/adapter-neon") as typeof import("@prisma/adapter-neon");
-    return new PrismaClient({ adapter: new PrismaNeon({ connectionString: url }), log });
-  }
+  configureDriver();
 
-  return new PrismaClient({ log });
+  return new PrismaClient({
+    adapter: new PrismaNeon({ connectionString }),
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+  });
 }
 
 export function getPrisma(): PrismaClient {
