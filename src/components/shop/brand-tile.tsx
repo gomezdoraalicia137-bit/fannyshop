@@ -22,17 +22,17 @@ export function BrandTile({
   size?: "sm" | "md" | "lg";
 }) {
   const styles = accentClasses(accent);
-  const heights = { sm: "h-24", md: "h-36", lg: "h-56" };
+  const ratios = { sm: "aspect-[3/2]", md: "aspect-[4/3]", lg: "aspect-[4/3]" };
   const iconSize = { sm: "size-6", md: "size-9", lg: "size-14" };
-  const padding = { sm: "p-2.5", md: "p-4", lg: "p-6" };
+  const padding = { sm: "p-2", md: "p-3", lg: "p-5" };
   const src = toImageSrc(logo);
 
   return (
     <div
       className={cn(
-        "relative grid place-items-center overflow-hidden rounded-xl border border-line/70 bg-gradient-to-br",
+        "relative grid w-full place-items-center overflow-hidden rounded-xl border border-line/70 bg-gradient-to-br",
         styles.bg,
-        heights[size],
+        ratios[size],
       )}
     >
       <div className="absolute inset-0 grid-lines opacity-25" />
@@ -44,7 +44,7 @@ export function BrandTile({
           alt={name}
           loading="lazy"
           decoding="async"
-          className={cn("relative size-full object-contain drop-shadow-lg", padding[size])}
+          className={cn("absolute inset-0 size-full object-contain drop-shadow-lg", padding[size])}
         />
       ) : (
         <div className="relative flex flex-col items-center gap-2 px-3 text-center">
@@ -75,13 +75,19 @@ export function BrandThumb({
   return (
     <div
       className={cn(
-        "grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-line/70 bg-gradient-to-br",
+        "relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-line/70 bg-gradient-to-br",
         styles.bg,
         className,
       )}
     >
       {src ? (
-        <img src={src} alt={name} loading="lazy" decoding="async" className="size-full object-contain p-1" />
+        <img
+          src={src}
+          alt={name}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 size-full object-contain p-1.5"
+        />
       ) : (
         <span className="font-display text-sm font-bold text-white">{fallback}</span>
       )}

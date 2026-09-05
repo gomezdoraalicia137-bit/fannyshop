@@ -42,6 +42,14 @@ export function toImageSrc(value: string | null | undefined): string | null {
   return null;
 }
 
+export function isVectorImage(value: string | null | undefined): boolean {
+  const raw = value?.trim().toLowerCase();
+  if (!raw) return false;
+  if (raw.startsWith("<svg")) return true;
+  if (raw.startsWith("data:image/svg+xml")) return true;
+  return /^https?:\/\/\S+\.svg(\?|#|$)/.test(raw);
+}
+
 export function isValidImageValue(value: string | null | undefined): boolean {
   if (!value?.trim()) return true;
   return toImageSrc(value) !== null;
