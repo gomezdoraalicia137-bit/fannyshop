@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { createOrder } from "@/lib/services/orders";
 import { createOrderSchema, firstError } from "@/lib/validators";
+import { CATALOG_TAG } from "@/lib/cache";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -22,6 +24,7 @@ export async function POST(request: Request) {
     });
 
     if (!result.ok) return NextResponse.json(result, { status: 409 });
+    revalidateTag(CATALOG_TAG, { expire: 0 });
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);

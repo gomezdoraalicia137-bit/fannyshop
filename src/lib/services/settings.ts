@@ -1,5 +1,7 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PRICING_RULES, isRoundingRule, type PricingRules } from "@/lib/pricing";
+import { CACHE_SECONDS, SETTINGS_TAG } from "@/lib/cache";
 import type { RoundingRule } from "@/lib/constants";
 
 export type StoreSettings = {
@@ -49,7 +51,7 @@ export const DEFAULT_SETTINGS: StoreSettings = {
 
 const SETTINGS_KEY = "store";
 
-export async function getSettings(): Promise<StoreSettings> {
+async function fetchSettings(): Promise<StoreSettings> {
   try {
     const record = await prisma.setting.findUnique({ where: { key: SETTINGS_KEY } });
     if (!record) return DEFAULT_SETTINGS;
@@ -57,6 +59,15 @@ export async function getSettings(): Promise<StoreSettings> {
   } catch {
     return DEFAULT_SETTINGS;
   }
+}
+
+const cachedSettings = unstable_cache(fetchSettings, ["store-settings"], {
+  tags: [SETTINGS_TAG],
+  revalidate: CACHE_SECONDS,
+});
+
+export async function getSettings(): Promise<StoreSettings> {
+  return cachedSettings();
 }
 
 export async function saveSettings(patch: Partial<StoreSettings>): Promise<StoreSettings> {

@@ -153,3 +153,37 @@ a:focus-visible {
     transition-duration: 0.001ms !important;
   }
 }
+
+@media (max-width: 900px) {
+  body {
+    background-attachment: scroll;
+    background-image: radial-gradient(
+      700px 400px at 50% -5%,
+      color-mix(in oklab, var(--color-neon-violet) 20%, transparent),
+      transparent 70%
+    );
+  }
+
+  .glass {
+    backdrop-filter: none;
+    background: color-mix(in oklab, var(--color-surface) 94%, transparent);
+  }
+
+  .glass-strong {
+    backdrop-filter: none;
+    background: color-mix(in oklab, var(--color-surface-2) 97%, transparent);
+  }
+
+  .animate-drift,
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-spin-slow {
+    animation: none;
+  }
+}
+
+@media (hover: none) {
+  .grid-lines {
+    background-image: none;
+  }
+}

@@ -1,7 +1,9 @@
 import type { Prisma } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getGlobalPricingRules } from "@/lib/services/settings";
 import { priceDenomination } from "@/lib/pricing";
+import { CATALOG_TAG, CACHE_SECONDS } from "@/lib/cache";
 import type { CategoryView, DenominationView, ProductView } from "@/types/catalog";
 
 const productInclude = {
@@ -17,11 +19,11 @@ const productInclude = {
 
 type ProductRecord = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
 
-export async function getProducts(options: { includeInactive?: boolean } = {}): Promise<ProductView[]> {
+async function fetchProducts(includeInactive: boolean): Promise<ProductView[]> {
   try {
     const rules = await getGlobalPricingRules();
     const products = await prisma.product.findMany({
-      where: options.includeInactive ? {} : { active: true },
+      where: includeInactive ? {} : { active: true },
       include: productInclude,
       orderBy: [{ featured: "desc" }, { salesCount: "desc" }, { name: "asc" }],
     });
@@ -31,21 +33,25 @@ export async function getProducts(options: { includeInactive?: boolean } = {}): 
   }
 }
 
-export async function getProductBySlug(slug: string): Promise<ProductView | null> {
-  try {
-    const rules = await getGlobalPricingRules();
-    const product = await prisma.product.findUnique({ where: { slug }, include: productInclude });
-    if (!product) return null;
-    return mapProduct(product, rules);
-  } catch {
-    return null;
-  }
+const cachedProducts = unstable_cache(fetchProducts, ["catalog-products"], {
+  tags: [CATALOG_TAG],
+  revalidate: CACHE_SECONDS,
+});
+
+export async function getProducts(options: { includeInactive?: boolean } = {}): Promise<ProductView[]> {
+  if (options.includeInactive) return fetchProducts(true);
+  return cachedProducts(false);
 }
 
-export async function getCategories(options: { includeInactive?: boolean } = {}): Promise<CategoryView[]> {
+export async function getProductBySlug(slug: string): Promise<ProductView | null> {
+  const products = await cachedProducts(false);
+  return products.find((product) => product.slug === slug) ?? null;
+}
+
+async function fetchCategories(includeInactive: boolean): Promise<CategoryView[]> {
   try {
     const categories = await prisma.category.findMany({
-      where: options.includeInactive ? {} : { active: true },
+      where: includeInactive ? {} : { active: true },
       orderBy: [{ position: "asc" }, { name: "asc" }],
       include: { _count: { select: { products: { where: { active: true } } } } },
     });
@@ -64,13 +70,19 @@ export async function getCategories(options: { includeInactive?: boolean } = {})
   }
 }
 
+const cachedCategories = unstable_cache(fetchCategories, ["catalog-categories"], {
+  tags: [CATALOG_TAG],
+  revalidate: CACHE_SECONDS,
+});
+
+export async function getCategories(options: { includeInactive?: boolean } = {}): Promise<CategoryView[]> {
+  if (options.includeInactive) return fetchCategories(true);
+  return cachedCategories(false);
+}
+
 export async function getProductSlugs(): Promise<string[]> {
-  try {
-    const rows = await prisma.product.findMany({ where: { active: true }, select: { slug: true } });
-    return rows.map((row) => row.slug);
-  } catch {
-    return [];
-  }
+  const products = await cachedProducts(false);
+  return products.map((product) => product.slug);
 }
 
 function mapProduct(

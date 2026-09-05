@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireStaff, hashPassword } from "@/lib/auth";
 import { recordAudit } from "@/lib/services/audit";
@@ -8,6 +8,7 @@ import { saveSettings } from "@/lib/services/settings";
 import { addCodes } from "@/lib/services/inventory";
 import { assignCodeToItem, deliverOrder, markOrderPaid, updateOrderStatus } from "@/lib/services/orders";
 import { isRoundingRule } from "@/lib/pricing";
+import { CATALOG_TAG, SETTINGS_TAG } from "@/lib/cache";
 import { slugify } from "@/lib/utils";
 import { categorySchema, couponSchema, denominationSchema, firstError, productSchema } from "@/lib/validators";
 import type { OrderStatus, Role } from "@/lib/constants";
@@ -30,6 +31,8 @@ const ADMIN_PATHS = [
 ];
 
 function revalidateAdmin() {
+  updateTag(CATALOG_TAG);
+  updateTag(SETTINGS_TAG);
   for (const path of ADMIN_PATHS) revalidatePath(path);
   revalidatePath("/", "layout");
 }
