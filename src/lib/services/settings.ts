@@ -50,9 +50,9 @@ export const DEFAULT_SETTINGS: StoreSettings = {
 const SETTINGS_KEY = "store";
 
 export async function getSettings(): Promise<StoreSettings> {
-  const record = await prisma.setting.findUnique({ where: { key: SETTINGS_KEY } });
-  if (!record) return DEFAULT_SETTINGS;
   try {
+    const record = await prisma.setting.findUnique({ where: { key: SETTINGS_KEY } });
+    if (!record) return DEFAULT_SETTINGS;
     return normalize(JSON.parse(record.value));
   } catch {
     return DEFAULT_SETTINGS;

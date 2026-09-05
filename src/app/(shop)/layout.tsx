@@ -6,6 +6,8 @@ import { getSettings } from "@/lib/services/settings";
 import { getCategories } from "@/lib/services/catalog";
 import type { Role } from "@/lib/constants";
 
+export const dynamic = "force-dynamic";
+
 export default async function ShopLayout({ children }: { children: React.ReactNode }) {
   const [user, settings, categories] = await Promise.all([getCurrentUser(), getSettings(), getCategories()]);
 

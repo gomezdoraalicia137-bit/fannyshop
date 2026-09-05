@@ -75,12 +75,16 @@ export async function readSession(): Promise<SessionUser | null> {
 export async function getCurrentUser() {
   const session = await readSession();
   if (!session) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: session.id },
-    select: { id: true, email: true, name: true, role: true, status: true, phone: true, createdAt: true },
-  });
-  if (!user || user.status !== "ACTIVE") return null;
-  return user;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { id: true, email: true, name: true, role: true, status: true, phone: true, createdAt: true },
+    });
+    if (!user || user.status !== "ACTIVE") return null;
+    return user;
+  } catch {
+    return null;
+  }
 }
 
 export async function requireUser() {

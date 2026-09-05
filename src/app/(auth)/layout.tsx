@@ -3,6 +3,8 @@ import { AuroraBackground } from "@/components/effects/background";
 import { Logo } from "@/components/shop/logo";
 import { getSettings } from "@/lib/services/settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSettings();
 

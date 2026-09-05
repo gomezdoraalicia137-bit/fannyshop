@@ -18,43 +18,59 @@ const productInclude = {
 type ProductRecord = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
 
 export async function getProducts(options: { includeInactive?: boolean } = {}): Promise<ProductView[]> {
-  const rules = await getGlobalPricingRules();
-  const products = await prisma.product.findMany({
-    where: options.includeInactive ? {} : { active: true },
-    include: productInclude,
-    orderBy: [{ featured: "desc" }, { salesCount: "desc" }, { name: "asc" }],
-  });
-  return products.map((product) => mapProduct(product, rules));
+  try {
+    const rules = await getGlobalPricingRules();
+    const products = await prisma.product.findMany({
+      where: options.includeInactive ? {} : { active: true },
+      include: productInclude,
+      orderBy: [{ featured: "desc" }, { salesCount: "desc" }, { name: "asc" }],
+    });
+    return products.map((product) => mapProduct(product, rules));
+  } catch {
+    return [];
+  }
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductView | null> {
-  const rules = await getGlobalPricingRules();
-  const product = await prisma.product.findUnique({ where: { slug }, include: productInclude });
-  if (!product) return null;
-  return mapProduct(product, rules);
+  try {
+    const rules = await getGlobalPricingRules();
+    const product = await prisma.product.findUnique({ where: { slug }, include: productInclude });
+    if (!product) return null;
+    return mapProduct(product, rules);
+  } catch {
+    return null;
+  }
 }
 
 export async function getCategories(options: { includeInactive?: boolean } = {}): Promise<CategoryView[]> {
-  const categories = await prisma.category.findMany({
-    where: options.includeInactive ? {} : { active: true },
-    orderBy: [{ position: "asc" }, { name: "asc" }],
-    include: { _count: { select: { products: { where: { active: true } } } } },
-  });
+  try {
+    const categories = await prisma.category.findMany({
+      where: options.includeInactive ? {} : { active: true },
+      orderBy: [{ position: "asc" }, { name: "asc" }],
+      include: { _count: { select: { products: { where: { active: true } } } } },
+    });
 
-  return categories.map((category) => ({
-    id: category.id,
-    name: category.name,
-    slug: category.slug,
-    description: category.description,
-    icon: category.icon,
-    accent: category.accent,
-    productCount: category._count.products,
-  }));
+    return categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      icon: category.icon,
+      accent: category.accent,
+      productCount: category._count.products,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function getProductSlugs(): Promise<string[]> {
-  const rows = await prisma.product.findMany({ where: { active: true }, select: { slug: true } });
-  return rows.map((row) => row.slug);
+  try {
+    const rows = await prisma.product.findMany({ where: { active: true }, select: { slug: true } });
+    return rows.map((row) => row.slug);
+  } catch {
+    return [];
+  }
 }
 
 function mapProduct(

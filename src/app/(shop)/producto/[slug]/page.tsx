@@ -7,16 +7,11 @@ import { ProductPurchasePanel } from "@/components/shop/product-purchase-panel";
 import { ProductCard } from "@/components/shop/product-card";
 import { ProductTagBadge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/ui/states";
-import { getProductBySlug, getProducts, getProductSlugs } from "@/lib/services/catalog";
+import { getProductBySlug, getProducts } from "@/lib/services/catalog";
 import { getSettings } from "@/lib/services/settings";
 import { formatMoney } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
-
-export async function generateStaticParams() {
-  const slugs = await getProductSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
