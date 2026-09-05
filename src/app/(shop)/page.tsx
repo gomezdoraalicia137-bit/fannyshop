@@ -16,7 +16,7 @@ export default async function HomePage() {
     getProducts(),
     getCategories(),
     getSettings(),
-    prisma.digitalCode.count(),
+    prisma.digitalCode.count().catch(() => 0),
   ]);
 
   const featured = products.filter((product) => product.featured).slice(0, 4);
