@@ -258,3 +258,9 @@ model AuditLog {
 
   @@index([entity, entityId])
 }
+
+model Visita {
+  id        String   @id @default(cuid())
+  ruta      String
+  fecha     DateTime @default(now())
+}
