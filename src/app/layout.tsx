@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { CartProvider } from "@/components/shop/cart-provider";
 import { getSettings } from "@/lib/services/settings";
 import "./globals.css";
+import RastreadorVisitas from "@/components/RastreadorVisitas";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`${spaceGrotesk.variable} ${orbitron.variable}`}>
       <body className="antialiased">
+        <RastreadorVisitas />
         <ToastProvider>
           <CartProvider>{children}</CartProvider>
         </ToastProvider>
