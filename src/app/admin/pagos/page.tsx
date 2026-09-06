@@ -17,12 +17,14 @@ export default async function AdminPaymentsPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMIN") redirect("/admin");
 
-  const [payments, settings] = await Promise.all([
+  // Agregamos prisma.visita.count() a la consulta principal
+  const [payments, settings, totalVisitas] = await Promise.all([
     prisma.payment.findMany({
       orderBy: { createdAt: "desc" },
       include: { order: { select: { id: true, reference: true, fullName: true, email: true } } },
     }),
     getSettings(),
+    prisma.visita.count(),
   ]);
 
   const approved = payments.filter((payment) => payment.status === "APPROVED");
@@ -34,11 +36,14 @@ export default async function AdminPaymentsPage() {
   return (
     <>
       <PageHeader
-        title="Pagos"
-        description="Registro de transacciones. La arquitectura está lista para integrar proveedores reales mediante variables de entorno."
+        title="Panel General"
+        description="Registro de transacciones y tráfico del sitio. La arquitectura está lista para integrar proveedores reales mediante variables de entorno."
       />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {/* Nueva tarjeta para mostrar las visitas */}
+        <StatCard label="Total Visitas" value={totalVisitas} accent="emerald" />
+        
         <StatCard label="Pagos aprobados" value={approved.length} accent="emerald" />
         <StatCard
           label="Monto aprobado"
