@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, CreditCard, ShieldCheck, User, Copy, CheckCheck, QrCode } from "lucide-react";
+import { Check, CreditCard, ShieldCheck, User, Copy, CheckCheck, QrCode, Smartphone } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { EmptyState, Skeleton } from "@/components/ui/states";
@@ -11,8 +11,12 @@ import { useToast } from "@/components/ui/toast";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
+// Datos de cobro
 const BINANCE_PAY_ID = "902753468";
 const BINANCE_USER = "YouKa503";
+
+const YAPPY_PHONE = "69247983";
+const YAPPY_NAME = "Stephanie Del Cid";
 
 type Customer = { fullName: string; email: string; phone: string; notes: string };
 
@@ -40,19 +44,28 @@ export function CheckoutFlow({
   const [method, setMethod] = useState(methods[0]?.id ?? "");
   const [errors, setErrors] = useState<Partial<Record<keyof Customer, string>>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [showQR, setShowQR] = useState(false);
+  const [copiedBinance, setCopiedBinance] = useState(false);
+  const [copiedYappy, setCopiedYappy] = useState(false);
+  const [showBinanceQR, setShowBinanceQR] = useState(false);
+  const [showYappyQR, setShowYappyQR] = useState(false);
 
-  const copyId = () => {
-    navigator.clipboard.writeText(BINANCE_PAY_ID);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyText = (text: string, type: "binance" | "yappy") => {
+    navigator.clipboard.writeText(text);
+    if (type === "binance") {
+      setCopiedBinance(true);
+      setTimeout(() => setCopiedBinance(false), 2000);
+    } else {
+      setCopiedYappy(true);
+      setTimeout(() => setCopiedYappy(false), 2000);
+    }
   };
 
   const isCrypto =
     method.toLowerCase().includes("crypto") ||
     method.toLowerCase().includes("binance") ||
     method.toLowerCase().includes("cripto");
+
+  const isYappy = method.toLowerCase().includes("yappy");
 
   if (!lines.length) {
     return (
@@ -158,7 +171,7 @@ export function CheckoutFlow({
                 <Input
                   value={customer.phone}
                   onChange={(event) => setCustomer({ ...customer, phone: event.target.value })}
-                  placeholder="+503 7000 0000"
+                  placeholder="+507 6000 0000"
                   autoComplete="tel"
                 />
               </Field>
@@ -204,14 +217,70 @@ export function CheckoutFlow({
               ))}
             </div>
 
-            {/* Cuadro de Binance Pay */}
+            {/* Cuadro de YAPPY */}
+            {isYappy ? (
+              <div className="rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-500/10 via-slate-900/90 to-black p-5 text-center shadow-lg space-y-3">
+                <div className="flex items-center justify-center gap-2 text-sky-400 font-bold text-sm">
+                  <Smartphone className="size-4" />
+                  <span>Pago con Yappy</span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Envía el pago desde tu app a nuestro número de Yappy:
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <div className="inline-flex items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-slate-950 px-4 py-2 text-base font-mono font-bold text-sky-300 shadow-inner">
+                    <span>{YAPPY_PHONE}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyText(YAPPY_PHONE, "yappy")}
+                      className="cursor-pointer text-xs flex items-center gap-1 rounded bg-sky-500/20 px-2 py-1 text-sky-200 hover:bg-sky-500/30"
+                    >
+                      {copiedYappy ? <CheckCheck className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
+                      {copiedYappy ? "Copiado" : "Copiar"}
+                    </button>
+                  </div>
+
+                  <span className="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200">
+                    A nombre de: <strong className="text-sky-300">{YAPPY_NAME}</strong>
+                  </span>
+                </div>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowYappyQR(!showYappyQR)}
+                    className="inline-flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 underline cursor-pointer mt-1"
+                  >
+                    <QrCode className="size-3.5" />
+                    {showYappyQR ? "Ocultar código QR" : "Ver código QR de Yappy"}
+                  </button>
+
+                  {showYappyQR ? (
+                    <div className="mt-3 flex justify-center">
+                      <img
+                        src="/yappy-qr.jpg"
+                        alt="Código QR Yappy Stephanie Del Cid"
+                        className="w-48 h-auto rounded-xl border-2 border-sky-500/40 shadow-2xl bg-white p-2"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+
+                <p className="text-[11px] text-slate-400">
+                  Al confirmar tu compra, validaremos la recepción en Yappy para liberarte los códigos digitales.
+                </p>
+              </div>
+            ) : null}
+
+            {/* Cuadro de BINANCE PAY */}
             {isCrypto ? (
               <div className="rounded-2xl border border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 via-slate-900/90 to-black p-5 text-center shadow-lg space-y-3">
                 <div className="flex items-center justify-center gap-2 text-yellow-400 font-bold text-sm">
                   <span>Pago con Binance Pay</span>
                 </div>
                 <p className="text-xs text-slate-300">
-                  Envía el pago desde la app de Binance a nuestro <strong>Pay ID</strong> o nombre de usuario:
+                  Envía el pago desde tu aplicación de Binance a nuestro <strong>Pay ID</strong>:
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center gap-3">
@@ -219,11 +288,11 @@ export function CheckoutFlow({
                     <span>ID: {BINANCE_PAY_ID}</span>
                     <button
                       type="button"
-                      onClick={copyId}
+                      onClick={() => copyText(BINANCE_PAY_ID, "binance")}
                       className="cursor-pointer text-xs flex items-center gap-1 rounded bg-yellow-500/20 px-2 py-1 text-yellow-200 hover:bg-yellow-500/30"
                     >
-                      {copied ? <CheckCheck className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
-                      {copied ? "Copiado" : "Copiar ID"}
+                      {copiedBinance ? <CheckCheck className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
+                      {copiedBinance ? "Copiado" : "Copiar ID"}
                     </button>
                   </div>
 
@@ -235,14 +304,14 @@ export function CheckoutFlow({
                 <div>
                   <button
                     type="button"
-                    onClick={() => setShowQR(!showQR)}
+                    onClick={() => setShowBinanceQR(!showBinanceQR)}
                     className="inline-flex items-center gap-1.5 text-xs text-yellow-400/90 hover:text-yellow-300 underline cursor-pointer mt-1"
                   >
                     <QrCode className="size-3.5" />
-                    {showQR ? "Ocultar código QR" : "Ver código QR de Binance"}
+                    {showBinanceQR ? "Ocultar código QR" : "Ver código QR de Binance"}
                   </button>
 
-                  {showQR ? (
+                  {showBinanceQR ? (
                     <div className="mt-3 flex justify-center">
                       <img
                         src="/binance-qr.jpg"
@@ -254,15 +323,17 @@ export function CheckoutFlow({
                 </div>
 
                 <p className="text-[11px] text-slate-400">
-                  Al confirmar tu compra, revisaremos la transferencia en Binance para enviarte tus códigos al instante.
+                  Al completar tu orden, nuestro equipo validará la recepción en Binance para activar tus códigos digitales.
                 </p>
               </div>
-            ) : (
+            ) : null}
+
+            {!isCrypto && !isYappy ? (
               <p className="rounded-xl border border-line/70 bg-abyss/60 p-4 text-xs leading-relaxed text-muted">
                 No almacenamos datos de tarjetas. Al confirmar la orden recibirás las instrucciones para completar el pago y
                 tus códigos quedarán reservados.
               </p>
-            )}
+            ) : null}
 
             <div className="flex justify-between gap-3">
               <Button variant="outline" onClick={() => setStep(1)}>
@@ -285,6 +356,12 @@ export function CheckoutFlow({
               <Detail label="Método de pago" value={methods.find((item) => item.id === method)?.label ?? method} />
             </dl>
 
+            {isYappy ? (
+              <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3 text-center text-xs text-sky-200">
+                Pagar por Yappy a: <strong className="font-mono font-bold text-sky-300">{YAPPY_PHONE}</strong> ({YAPPY_NAME})
+              </div>
+            ) : null}
+
             {isCrypto ? (
               <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-3 text-center text-xs text-yellow-200">
                 Pagar a Binance Pay ID: <strong className="font-mono font-bold text-yellow-300">{BINANCE_PAY_ID}</strong> ({BINANCE_USER})
@@ -302,11 +379,17 @@ export function CheckoutFlow({
               ))}
             </div>
 
-            <Field label="Notas adicionales (Ej. TxID o comprobante de Binance)">
+            <Field label="Notas adicionales (Ej. Comprobante o número de referencia)">
               <Textarea
                 value={customer.notes}
                 onChange={(event) => setCustomer({ ...customer, notes: event.target.value })}
-                placeholder={isCrypto ? "Pega aquí tu ID de transacción (TxID) o nombre de usuario en Binance..." : "Comparte cualquier detalle relevante para tu entrega."}
+                placeholder={
+                  isYappy
+                    ? "Pega aquí el número de confirmación de Yappy..."
+                    : isCrypto
+                    ? "Pega aquí tu TxID o ID de Binance..."
+                    : "Comparte cualquier detalle relevante para tu entrega."
+                }
               />
             </Field>
 
