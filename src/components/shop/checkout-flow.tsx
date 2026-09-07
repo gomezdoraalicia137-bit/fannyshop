@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, CreditCard, ShieldCheck, User } from "lucide-react";
+import { Check, CreditCard, ShieldCheck, User, Copy, CheckCheck, QrCode } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { EmptyState, Skeleton } from "@/components/ui/states";
@@ -10,6 +10,9 @@ import { useCart } from "@/components/shop/cart-provider";
 import { useToast } from "@/components/ui/toast";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
+
+const BINANCE_PAY_ID = "902753468";
+const BINANCE_USER = "YouKa503";
 
 type Customer = { fullName: string; email: string; phone: string; notes: string };
 
@@ -37,6 +40,19 @@ export function CheckoutFlow({
   const [method, setMethod] = useState(methods[0]?.id ?? "");
   const [errors, setErrors] = useState<Partial<Record<keyof Customer, string>>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+
+  const copyId = () => {
+    navigator.clipboard.writeText(BINANCE_PAY_ID);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const isCrypto =
+    method.toLowerCase().includes("crypto") ||
+    method.toLowerCase().includes("binance") ||
+    method.toLowerCase().includes("cripto");
 
   if (!lines.length) {
     return (
@@ -178,7 +194,7 @@ export function CheckoutFlow({
                   className={cn(
                     "cursor-pointer rounded-xl border p-4 text-left transition-all",
                     method === item.id
-                      ? "border-neon-violet/60 bg-gradient-to-br from-neon-blue/15 to-neon-violet/15 text-white"
+                      ? "border-neon-violet/60 bg-gradient-to-br from-neon-blue/15 to-neon-violet/15 text-white shadow-lg"
                       : "border-line/70 text-muted hover:border-neon-blue/45 hover:text-white",
                   )}
                 >
@@ -187,10 +203,67 @@ export function CheckoutFlow({
                 </button>
               ))}
             </div>
-            <p className="rounded-xl border border-line/70 bg-abyss/60 p-4 text-xs leading-relaxed text-muted">
-              No almacenamos datos de tarjetas. Al confirmar la orden recibirás las instrucciones para completar el pago y
-              tus códigos quedarán reservados.
-            </p>
+
+            {/* Cuadro de Binance Pay */}
+            {isCrypto ? (
+              <div className="rounded-2xl border border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 via-slate-900/90 to-black p-5 text-center shadow-lg space-y-3">
+                <div className="flex items-center justify-center gap-2 text-yellow-400 font-bold text-sm">
+                  <span>Pago con Binance Pay</span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Envía el pago desde la app de Binance a nuestro <strong>Pay ID</strong> o nombre de usuario:
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <div className="inline-flex items-center justify-center gap-2 rounded-xl border border-yellow-500/30 bg-slate-950 px-4 py-2 text-base font-mono font-bold text-yellow-300 shadow-inner">
+                    <span>ID: {BINANCE_PAY_ID}</span>
+                    <button
+                      type="button"
+                      onClick={copyId}
+                      className="cursor-pointer text-xs flex items-center gap-1 rounded bg-yellow-500/20 px-2 py-1 text-yellow-200 hover:bg-yellow-500/30"
+                    >
+                      {copied ? <CheckCheck className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
+                      {copied ? "Copiado" : "Copiar ID"}
+                    </button>
+                  </div>
+
+                  <span className="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200">
+                    Usuario: <strong className="text-yellow-400">{BINANCE_USER}</strong>
+                  </span>
+                </div>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowQR(!showQR)}
+                    className="inline-flex items-center gap-1.5 text-xs text-yellow-400/90 hover:text-yellow-300 underline cursor-pointer mt-1"
+                  >
+                    <QrCode className="size-3.5" />
+                    {showQR ? "Ocultar código QR" : "Ver código QR de Binance"}
+                  </button>
+
+                  {showQR ? (
+                    <div className="mt-3 flex justify-center">
+                      <img
+                        src="/binance-qr.jpg"
+                        alt="Código QR Binance Pay YouKa503"
+                        className="w-48 h-auto rounded-xl border-2 border-yellow-500/40 shadow-2xl bg-slate-900 p-1"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+
+                <p className="text-[11px] text-slate-400">
+                  Al confirmar tu compra, revisaremos la transferencia en Binance para enviarte tus códigos al instante.
+                </p>
+              </div>
+            ) : (
+              <p className="rounded-xl border border-line/70 bg-abyss/60 p-4 text-xs leading-relaxed text-muted">
+                No almacenamos datos de tarjetas. Al confirmar la orden recibirás las instrucciones para completar el pago y
+                tus códigos quedarán reservados.
+              </p>
+            )}
+
             <div className="flex justify-between gap-3">
               <Button variant="outline" onClick={() => setStep(1)}>
                 Regresar
@@ -212,6 +285,12 @@ export function CheckoutFlow({
               <Detail label="Método de pago" value={methods.find((item) => item.id === method)?.label ?? method} />
             </dl>
 
+            {isCrypto ? (
+              <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-3 text-center text-xs text-yellow-200">
+                Pagar a Binance Pay ID: <strong className="font-mono font-bold text-yellow-300">{BINANCE_PAY_ID}</strong> ({BINANCE_USER})
+              </div>
+            ) : null}
+
             <div className="space-y-2 rounded-xl border border-line/70 bg-abyss/60 p-4">
               {summary.lines.map((line) => (
                 <div key={`${line.productId}-${line.denominationId}`} className="flex justify-between gap-3 text-sm">
@@ -223,11 +302,11 @@ export function CheckoutFlow({
               ))}
             </div>
 
-            <Field label="Notas adicionales">
+            <Field label="Notas adicionales (Ej. TxID o comprobante de Binance)">
               <Textarea
                 value={customer.notes}
                 onChange={(event) => setCustomer({ ...customer, notes: event.target.value })}
-                placeholder="Comparte cualquier detalle relevante para tu entrega."
+                placeholder={isCrypto ? "Pega aquí tu ID de transacción (TxID) o nombre de usuario en Binance..." : "Comparte cualquier detalle relevante para tu entrega."}
               />
             </Field>
 
