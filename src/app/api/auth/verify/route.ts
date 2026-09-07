@@ -36,9 +36,10 @@ export async function POST(request: Request) {
 
     await prisma.passwordReset.delete({ where: { id: tokenRecord.id } });
 
-    await createSession({ id: user.id, email: user.email, name: user.name, role: user.role });
+    const userRole = (user.role === "ADMIN" || user.role === "STAFF") ? user.role : "CUSTOMER";
+    await createSession({ id: user.id, email: user.email, name: user.name, role: userRole });
 
-    return NextResponse.json({ ok: true, role: user.role });
+    return NextResponse.json({ ok: true, role: userRole });
   } catch (err) {
     console.error("Error en verificación:", err);
     return NextResponse.json({ ok: false, error: "Error al verificar el código." }, { status: 500 });
