@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { KeyRound, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
@@ -15,6 +16,11 @@ export function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo?: string
   const [values, setValues] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Estados para la verificación del código
+  const [step, setStep] = useState<"form" | "verify">("form");
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -37,6 +43,13 @@ export function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo?: string
         return;
       }
 
+      // Si requiere verificación, pasamos a la pantalla del código
+      if (data.requiresVerification) {
+        setStep("verify");
+        toast.info("Código enviado. Revisa tu correo electrónico.");
+        return;
+      }
+
       toast.success(mode === "login" ? "Sesión iniciada." : "Cuenta creada correctamente.");
       const target = redirectTo ?? (data.role === "ADMIN" || data.role === "STAFF" ? "/admin" : "/cuenta");
       router.push(target);
@@ -48,6 +61,80 @@ export function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo?: string
     }
   };
 
+  const verifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifying(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: values.email, code: code.trim() }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        setError(data.error ?? "Código inválido o expirado.");
+        return;
+      }
+
+      toast.success("¡Cuenta verificada con éxito!");
+      const target = redirectTo ?? (data.role === "ADMIN" || data.role === "STAFF" ? "/admin" : "/cuenta");
+      router.push(target);
+      router.refresh();
+    } catch {
+      setError("Error al validar el código.");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  // Pantalla cuando se le pide el código de 6 dígitos
+  if (step === "verify") {
+    return (
+      <form onSubmit={verifyCode} className="glass-strong space-y-5 rounded-2xl p-7 text-center">
+        <div className="mx-auto grid size-12 place-items-center rounded-2xl border border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan">
+          <KeyRound className="size-6" />
+        </div>
+
+        <div className="space-y-1.5">
+          <h1 className="font-display text-2xl font-semibold text-white">Verifica tu correo</h1>
+          <p className="text-sm text-muted">
+            Enviamos un código de 6 dígitos a <strong className="text-neon-cyan">{values.email}</strong>.
+          </p>
+        </div>
+
+        <Field label="Código de verificación" error={error}>
+          <Input
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            placeholder="123456"
+            className="text-center font-mono text-2xl tracking-[0.5em] font-bold text-yellow-400 placeholder:text-muted/30"
+            autoFocus
+            required
+          />
+        </Field>
+
+        <Button type="submit" size="lg" className="w-full" loading={verifying} disabled={code.length !== 6}>
+          Activar cuenta
+        </Button>
+
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => setStep("form")}
+            className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-white cursor-pointer"
+          >
+            <ArrowLeft className="size-3" />
+            Volver al formulario
+          </button>
+        </div>
+      </form>
+    );
+  }
+
+  // Formulario original de Login y Registro
   return (
     <form onSubmit={submit} className="glass-strong space-y-5 rounded-2xl p-7">
       <div className="space-y-1.5">
