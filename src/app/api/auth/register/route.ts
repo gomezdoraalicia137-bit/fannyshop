@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createSession, hashPassword } from "@/lib/auth";
+import { hashPassword } from "@/lib/auth";
 import { firstError, registerSchema } from "@/lib/validators";
+import { sendVerificationEmail } from "@/lib/mail";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -11,20 +12,42 @@ export async function POST(request: Request) {
   }
 
   const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } });
-  if (existing) {
+  
+  if (existing && existing.status === "ACTIVE") {
     return NextResponse.json({ ok: false, error: "Ya existe una cuenta con este correo." }, { status: 409 });
   }
 
-  const user = await prisma.user.create({
+  let user = existing;
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email: parsed.data.email,
+        name: parsed.data.name,
+        passwordHash: await hashPassword(parsed.data.password),
+        role: "CUSTOMER",
+        status: "PENDING_VERIFICATION",
+      },
+    });
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+  await prisma.passwordReset.deleteMany({ where: { userId: user.id } });
+
+  await prisma.passwordReset.create({
     data: {
-      email: parsed.data.email,
-      name: parsed.data.name,
-      passwordHash: await hashPassword(parsed.data.password),
-      role: "CUSTOMER",
+      userId: user.id,
+      tokenHash: `VERIFY_${code}_${user.id}`,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     },
   });
 
-  await createSession({ id: user.id, email: user.email, name: user.name, role: "CUSTOMER" });
+  await sendVerificationEmail(parsed.data.email, code);
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json({
+    ok: true,
+    requiresVerification: true,
+    email: parsed.data.email,
+  }, { status: 201 });
 }
