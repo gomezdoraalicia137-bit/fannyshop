@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, CreditCard, ShieldCheck, User, Copy, CheckCheck, QrCode, Smartphone } from "lucide-react";
+import { Check, CreditCard, ShieldCheck, User, Copy, CheckCheck, QrCode, Smartphone, Landmark } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { EmptyState, Skeleton } from "@/components/ui/states";
@@ -11,12 +11,19 @@ import { useToast } from "@/components/ui/toast";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
-// Datos de cobro
+// 1. Datos de Binance Pay
 const BINANCE_PAY_ID = "902753468";
 const BINANCE_USER = "YouKa503";
 
+// 2. Datos de Yappy
 const YAPPY_PHONE = "69247983";
 const YAPPY_NAME = "Stephanie Del Cid";
+
+// 3. Datos de Transferencia Bancaria (Banco General)
+const BANK_NAME = "Banco General";
+const BANK_TYPE = "Cuenta de ahorros";
+const BANK_HOLDER = "STEPHANIE MICHELLE DEL CID";
+const BANK_ACCOUNT = "0438972672596";
 
 type Customer = { fullName: string; email: string; phone: string; notes: string };
 
@@ -44,19 +51,24 @@ export function CheckoutFlow({
   const [method, setMethod] = useState(methods[0]?.id ?? "");
   const [errors, setErrors] = useState<Partial<Record<keyof Customer, string>>>({});
   const [submitting, setSubmitting] = useState(false);
+  
   const [copiedBinance, setCopiedBinance] = useState(false);
   const [copiedYappy, setCopiedYappy] = useState(false);
+  const [copiedBank, setCopiedBank] = useState(false);
   const [showBinanceQR, setShowBinanceQR] = useState(false);
   const [showYappyQR, setShowYappyQR] = useState(false);
 
-  const copyText = (text: string, type: "binance" | "yappy") => {
+  const copyText = (text: string, type: "binance" | "yappy" | "bank") => {
     navigator.clipboard.writeText(text);
     if (type === "binance") {
       setCopiedBinance(true);
       setTimeout(() => setCopiedBinance(false), 2000);
-    } else {
+    } else if (type === "yappy") {
       setCopiedYappy(true);
       setTimeout(() => setCopiedYappy(false), 2000);
+    } else if (type === "bank") {
+      setCopiedBank(true);
+      setTimeout(() => setCopiedBank(false), 2000);
     }
   };
 
@@ -66,6 +78,12 @@ export function CheckoutFlow({
     method.toLowerCase().includes("cripto");
 
   const isYappy = method.toLowerCase().includes("yappy");
+
+  const isTransfer =
+    method.toLowerCase().includes("transfer") ||
+    method.toLowerCase().includes("banco") ||
+    method.toLowerCase().includes("bancaria") ||
+    method === "MANUAL_TRANSFER";
 
   if (!lines.length) {
     return (
@@ -217,6 +235,58 @@ export function CheckoutFlow({
               ))}
             </div>
 
+            {/* Cuadro de BANCO GENERAL (Transferencia Bancaria) */}
+            {isTransfer ? (
+              <div className="rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-900/20 via-slate-900/95 to-black p-5 text-center shadow-lg space-y-3">
+                <div className="flex items-center justify-center gap-2.5 text-blue-400 font-bold text-sm">
+                  <img
+                    src="/banco-general.png"
+                    alt="Banco General Logo"
+                    className="h-6 w-auto object-contain rounded"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                  <Landmark className="size-4 text-blue-400" />
+                  <span>Transferencia a {BANK_NAME}</span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Realiza la transferencia desde tu banca en línea a los siguientes datos:
+                </p>
+
+                <div className="grid gap-2 max-w-md mx-auto text-left text-xs bg-slate-950/80 p-3.5 rounded-xl border border-blue-500/25">
+                  <div className="flex justify-between border-b border-slate-800 pb-1.5">
+                    <span className="text-slate-400">Banco:</span>
+                    <strong className="text-white font-semibold">{BANK_NAME}</strong>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-800 pb-1.5">
+                    <span className="text-slate-400">Tipo de cuenta:</span>
+                    <strong className="text-white font-semibold">{BANK_TYPE}</strong>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-800 pb-1.5">
+                    <span className="text-slate-400">Titular:</span>
+                    <strong className="text-blue-300 font-semibold">{BANK_HOLDER}</strong>
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-slate-400">N° de cuenta:</span>
+                    <div className="flex items-center gap-2">
+                      <strong className="text-blue-400 font-mono text-sm tracking-wide">{BANK_ACCOUNT}</strong>
+                      <button
+                        type="button"
+                        onClick={() => copyText(BANK_ACCOUNT, "bank")}
+                        className="cursor-pointer flex items-center gap-1 rounded bg-blue-500/20 px-2 py-1 text-[11px] text-blue-300 hover:bg-blue-500/30"
+                      >
+                        {copiedBank ? <CheckCheck className="size-3 text-green-400" /> : <Copy className="size-3" />}
+                        {copiedBank ? "Copiado" : "Copiar"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-400">
+                  Al completar tu orden, nuestro equipo validará el comprobante bancario para liberarte los códigos digitales.
+                </p>
+              </div>
+            ) : null}
+
             {/* Cuadro de YAPPY */}
             {isYappy ? (
               <div className="rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-500/10 via-slate-900/90 to-black p-5 text-center shadow-lg space-y-3">
@@ -280,7 +350,7 @@ export function CheckoutFlow({
                   <span>Pago con Binance Pay</span>
                 </div>
                 <p className="text-xs text-slate-300">
-                  Envía el pago desde tu aplicación de Binance a nuestro <strong>Pay ID</strong>:
+                  Envía el pago desde la app de Binance a nuestro <strong>Pay ID</strong> o usuario:
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center gap-3">
@@ -328,7 +398,7 @@ export function CheckoutFlow({
               </div>
             ) : null}
 
-            {!isCrypto && !isYappy ? (
+            {!isCrypto && !isYappy && !isTransfer ? (
               <p className="rounded-xl border border-line/70 bg-abyss/60 p-4 text-xs leading-relaxed text-muted">
                 No almacenamos datos de tarjetas. Al confirmar la orden recibirás las instrucciones para completar el pago y
                 tus códigos quedarán reservados.
@@ -356,6 +426,12 @@ export function CheckoutFlow({
               <Detail label="Método de pago" value={methods.find((item) => item.id === method)?.label ?? method} />
             </dl>
 
+            {isTransfer ? (
+              <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-3 text-center text-xs text-blue-200">
+                Transferir a {BANK_NAME} ({BANK_TYPE}): <strong className="font-mono font-bold text-blue-300">{BANK_ACCOUNT}</strong> - {BANK_HOLDER}
+              </div>
+            ) : null}
+
             {isYappy ? (
               <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3 text-center text-xs text-sky-200">
                 Pagar por Yappy a: <strong className="font-mono font-bold text-sky-300">{YAPPY_PHONE}</strong> ({YAPPY_NAME})
@@ -379,12 +455,14 @@ export function CheckoutFlow({
               ))}
             </div>
 
-            <Field label="Notas adicionales (Ej. Comprobante o número de referencia)">
+            <Field label="Notas adicionales (Ej. Comprobante, TxID o N° de transferencia)">
               <Textarea
                 value={customer.notes}
                 onChange={(event) => setCustomer({ ...customer, notes: event.target.value })}
                 placeholder={
-                  isYappy
+                  isTransfer
+                    ? "Pega aquí el número de confirmación o referencia de la transferencia bancaria..."
+                    : isYappy
                     ? "Pega aquí el número de confirmación de Yappy..."
                     : isCrypto
                     ? "Pega aquí tu TxID o ID de Binance..."
