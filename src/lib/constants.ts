@@ -27,6 +27,7 @@ export const PAYMENT_METHODS = [
   { id: "CARD", label: "Tarjeta de crédito / débito" },
   { id: "PAYPAL", label: "PayPal" },
   { id: "CRYPTO", label: "Criptomonedas" },
+  { id: "YAPPY", label: "Yappy" }, // 👈 Agregado aquí
 ] as const;
 
 export const PRODUCT_TAGS = ["NUEVO", "POPULAR", "MAS_VENDIDO", "OFERTA"] as const;
