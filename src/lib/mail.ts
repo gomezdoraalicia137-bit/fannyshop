@@ -14,7 +14,7 @@ export async function sendVerificationEmail(email: string, code: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "FannyShop <onboarding@resend.dev>",
+        from: "FannyShop <seguridad@fannyshop.store>",
         to: [email],
         subject: `Tu código de verificación de FannyShop: ${code}`,
         html: `
